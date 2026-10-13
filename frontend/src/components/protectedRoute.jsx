@@ -1,11 +1,12 @@
 import useAuth from "../context/useAuth";
 import { Navigate } from "react-router-dom";
+import ShopsyLoader from "./ShopsyLoader";
 
 function ProtectedRoute({ children }) {
   const { customer, loader } = useAuth();
 
   if (loader) {
-    return <h1>Loading...</h1>;
+    return <ShopsyLoader fullScreen />;
   }
 
   if (!customer) {
