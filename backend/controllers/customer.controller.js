@@ -4,8 +4,8 @@ import gentoken from "../utils/generateToken.js";
 
 const cokkieOptions = {
   httpOnly: true,
-  sameSite: "lax",
-  secure: false,
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  secure: process.env.NODE_ENV === "production",
 };
 
 export const registerCustomer = async (req, res) => {

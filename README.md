@@ -328,6 +328,8 @@ Product records require `name`, `description`, `price`, `category`, `image`, and
 | `jwt_secret` or `JWT_SECRET` | Yes | JWT signing secret |
 | `RAZORPAY_KEY_ID` | Checkout | Razorpay key ID |
 | `RAZORPAY_KEY_SECRET` | Checkout | Razorpay secret used for signature verification |
+| `CORS_ORIGINS` | Production | Comma-separated frontend origin(s), for example `https://shop.example.com` |
+| `NODE_ENV` | Production | Set to `production` to enable secure cross-site auth cookies |
 
 ### Frontend
 
