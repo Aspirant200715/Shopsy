@@ -4,6 +4,7 @@ import gentoken from "../utils/generateToken.js";
 
 const cokkieOptions = {
   httpOnly: true,
+  path: "/",
   sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   secure: process.env.NODE_ENV === "production",
 };
@@ -122,7 +123,7 @@ export const getCustomer = (req, res) => {
 };
 
 export const logoutCustomer = (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie("token", cokkieOptions);
 
   return res.status(200).json({
     success: true,
