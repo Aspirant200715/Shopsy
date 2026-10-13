@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { fetchProduct } from "../services/productApi";
 import formatPrice from "../utils/formatPrice";
-import { useDispatch } from "react-redux";
-import { addToCart } from "../features/cart/cartSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart, updateQuantity } from "../features/cart/cartSlice";
 import CartNavLink from "../components/CartNavLink";
 import { toast } from "react-toastify";
 
@@ -12,10 +12,12 @@ function ProductDetailsPage() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [added, setAdded] = useState(false);
   const [cartError, setCartError] = useState("");
-  const [adding, setAdding] = useState(false);
+  const [updatingCart, setUpdatingCart] = useState(false);
   const dispatch = useDispatch();
+  const cartItems = useSelector((state) => state.cart.cartItems);
+  const cartItem = cartItems.find((item) => item.product?._id === id);
+  const quantity = cartItem?.quantity || 0;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -42,6 +44,44 @@ function ProductDetailsPage() {
 
     return () => controller.abort();
   }, [id]);
+
+  const updateCartQuantity = async (nextQuantity) => {
+    if (
+      !product ||
+      updatingCart ||
+      nextQuantity < 1 ||
+      nextQuantity > product.stock
+    ) {
+      return;
+    }
+
+    setUpdatingCart(true);
+    setCartError("");
+
+    try {
+      if (!cartItem) {
+        await dispatch(addToCart(product._id)).unwrap();
+      } else {
+        await dispatch(
+          updateQuantity({ productId: product._id, quantity: nextQuantity }),
+        ).unwrap();
+      }
+      toast.success(
+        quantity > 0
+          ? `${product.name} quantity updated.`
+          : `${product.name} added to your cart.`,
+      );
+    } catch (requestError) {
+      const msg =
+        typeof requestError === "string"
+          ? requestError
+          : requestError?.message || "Unable to update your cart.";
+      setCartError(msg);
+      toast.error(msg);
+    } finally {
+      setUpdatingCart(false);
+    }
+  };
 
   return (
     <div className="home-shell catalog-shell">
@@ -114,39 +154,61 @@ function ProductDetailsPage() {
                     : "Check back soon for a restock"}
                 </span>
               </div>
-              <button
-                className="primary-btn details-cart"
-                disabled={product.stock === 0 || adding}
-                onClick={async () => {
-                  setAdding(true);
-                  setCartError("");
-                  try {
-                    await dispatch(addToCart(product._id)).unwrap();
-                    setAdded(true);
-                    toast.success("Added to cart");
-                  } catch (requestError) {
-                    const msg = typeof requestError === "string"
-                        ? requestError
-                        : requestError?.response?.data?.message ||
-                            requestError?.message ||
-                            "Unable to add product to cart.";
-                    setCartError(msg);
-                    toast.error(msg);
-                  } finally {
-                    setAdding(false);
-                  }
-                }}
-                type="button"
-              >
-                {adding
-                  ? "Adding..."
-                  : added
-                    ? "Added to your cart"
-                    : "Add to cart"}
-              </button>
-              {added && (
+              {quantity > 0 ? (
+                <div className="quantity-control details-quantity-control">
+                  <span className="quantity-label">
+                    Already in your cart: {quantity}{" "}
+                    {quantity === 1 ? "item" : "items"}
+                  </span>
+                  <div className="quantity-stepper">
+                    <button
+                      type="button"
+                      aria-label={`Decrease ${product.name} quantity`}
+                      disabled={updatingCart || quantity <= 1}
+                      onClick={() => updateCartQuantity(quantity - 1)}
+                    >
+                      −
+                    </button>
+                    <input
+                      type="number"
+                      min="1"
+                      max={product.stock}
+                      value={quantity}
+                      aria-label={`${product.name} quantity`}
+                      disabled={updatingCart}
+                      onChange={(event) => {
+                        const nextQuantity = Number(event.target.value);
+                        if (Number.isInteger(nextQuantity)) {
+                          updateCartQuantity(nextQuantity);
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      aria-label={`Increase ${product.name} quantity`}
+                      disabled={updatingCart || quantity >= product.stock}
+                      onClick={() => updateCartQuantity(quantity + 1)}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <span className="stock-hint">{product.stock} in stock</span>
+                </div>
+              ) : (
+                <button
+                  className="primary-btn details-cart"
+                  disabled={product.stock === 0 || updatingCart}
+                  onClick={() => updateCartQuantity(1)}
+                  type="button"
+                >
+                  {updatingCart ? "Adding..." : "Add to cart"}
+                </button>
+              )}
+              {quantity > 0 && (
                 <div className="added-cart-actions">
-                  <p className="added-note">Added to your cart.</p>
+                  <p className="added-note">
+                    This item is already saved in your cart.
+                  </p>
                   <Link className="view-cart-link" to="/cart">
                     View cart{" "}
                     <span

@@ -447,19 +447,35 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .state-panel .primary-btn { margin-top: 10px; color: var(--lime); }
 .state-error { border-color: var(--coral); }
 .shopsy-loader { display: grid; justify-items: center; gap: 5px; color: var(--muted); text-align: center; }
-.shopsy-loader strong { color: var(--ink); font-size: .9rem; }
-.shopsy-loader small { font-size: .72rem; letter-spacing: .04em; }
 .shopsy-loader-fullscreen { min-height: 100vh; place-content: center; padding: 24px; background: var(--paper); }
-.shopsy-loader-orbit { position: relative; width: 74px; height: 74px; margin-bottom: 8px; border: 2px dashed rgba(24,33,29,.22); border-radius: 50%; animation: loader-orbit 5s linear infinite; }
+.shopsy-loader-scene { position: relative; width: 190px; height: 122px; margin-bottom: 6px; }
+.shopsy-loader-orbit { position: absolute; top: 10px; left: 58px; width: 74px; height: 74px; border: 2px dashed rgba(24,33,29,.25); border-radius: 50%; animation: loader-orbit 5s linear infinite; }
 .shopsy-loader-orbit::before { position: absolute; inset: 13px; border: 2px solid var(--ink); border-radius: 50%; content: ""; }
 .shopsy-loader-orbit span { position: absolute; top: -5px; left: calc(50% - 6px); width: 12px; height: 12px; border: 2px solid var(--ink); border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 3px var(--paper); }
 .shopsy-loader-orbit span:nth-child(2) { top: auto; right: -5px; bottom: 8px; left: auto; background: var(--coral); animation: loader-pulse 1.3s ease-in-out infinite; }
 .shopsy-loader-orbit span:nth-child(3) { top: auto; bottom: -5px; left: 14px; background: var(--card); animation: loader-pulse 1.3s .35s ease-in-out infinite; }
+.shopsy-loader-bag { position: absolute; inset: 27px 25px 25px; display: grid; place-items: center; animation: loader-bag-float 2.4s ease-in-out infinite; }
+.shopsy-loader-bag-handle { position: absolute; top: 0; width: 18px; height: 13px; border: 2px solid var(--ink); border-bottom: 0; border-radius: 10px 10px 0 0; }
+.shopsy-loader-bag-body { display: grid; width: 29px; height: 25px; place-items: center; border: 2px solid var(--ink); border-radius: 3px; background: var(--lime); color: var(--ink); font-size: .8rem; font-weight: 900; }
+.shopsy-loader-product { position: absolute; display: grid; width: 32px; height: 32px; place-items: center; border: 1.5px solid var(--ink); border-radius: 8px; color: var(--ink); font-size: 1.05rem; box-shadow: 3px 3px 0 var(--ink); }
+.shopsy-loader-product-left { top: 8px; left: 8px; background: var(--coral); transform: rotate(-12deg); animation: loader-product-left 3s ease-in-out infinite; }
+.shopsy-loader-product-right { right: 7px; bottom: 11px; background: var(--lime); transform: rotate(10deg); animation: loader-product-right 3.4s ease-in-out infinite; }
+.shopsy-loader-subtitle { animation: loader-fade-in .7s ease both; }
+.shopsy-loader-progress { width: min(220px, 70vw); height: 4px; margin-top: 10px; overflow: hidden; border-radius: 999px; background: rgba(24,33,29,.12); }
+.shopsy-loader-progress span { display: block; width: 42%; height: 100%; border-radius: inherit; background: var(--coral); animation: loader-progress 1.8s ease-in-out infinite; }
+.shopsy-loader-quote { display: grid; gap: 4px; max-width: 370px; margin-top: 15px; color: var(--ink); font-size: .76rem; line-height: 1.5; animation: loader-quote-in .55s ease both; }
+.shopsy-loader-quote small { color: var(--muted); font-size: .68rem; }
 .loader-dot { width: 42px; height: 14px; background: radial-gradient(circle, var(--coral) 0 5px, transparent 6px) 0 50% / 14px 14px, radial-gradient(circle, var(--lime) 0 5px, transparent 6px) 14px 50% / 14px 14px, radial-gradient(circle, var(--ink) 0 5px, transparent 6px) 28px 50% / 14px 14px; background-repeat: no-repeat; animation: loader-dots 1.1s ease-in-out infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes loader-orbit { to { transform: rotate(360deg); } }
 @keyframes loader-pulse { 50% { transform: scale(1.35); } }
 @keyframes loader-dots { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px) scale(1.08); } }
+@keyframes loader-bag-float { 50% { transform: translateY(-4px) rotate(-3deg); } }
+@keyframes loader-product-left { 50% { transform: translate(-3px, -7px) rotate(-18deg); } }
+@keyframes loader-product-right { 50% { transform: translate(3px, -5px) rotate(16deg); } }
+@keyframes loader-progress { 0% { transform: translateX(-120%); } 60%, 100% { transform: translateX(250%); } }
+@keyframes loader-fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes loader-quote-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
 .details-layout { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(340px, .95fr); gap: 58px; align-items: center; }
 .details-image-panel { position: relative; min-height: 620px; overflow: hidden; border: 1.5px solid var(--ink); border-radius: 12px; background: var(--lime); box-shadow: 8px 8px 0 var(--ink); }
 .details-image-panel img { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 620px; display: block; object-fit: cover; }
@@ -475,6 +491,9 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .stock-mark-out::before { color: var(--coral); }
 .details-cart { display: flex; width: min(100%, 320px); min-width: 230px; }
 .details-cart:disabled { cursor: not-allowed; opacity: .5; box-shadow: none; }
+.details-quantity-control { width: min(100%, 320px); margin-top: 2px; }
+.details-quantity-control .quantity-stepper { width: 100%; }
+.details-quantity-control .quantity-stepper input { flex: 1; width: auto; }
 .added-note { max-width: 100%; margin: 10px 0 0; color: var(--coral); font-size: .8rem; font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; }
 .details-back { display: flex; align-items: center; gap: 9px; width: fit-content; clear: both; margin-top: 24px; padding: 9px 0; border: 0; background: transparent; box-shadow: none; color: var(--ink); font-size: .8rem; font-weight: 900; text-decoration: none; }
 .details-back:hover { color: var(--coral); }
@@ -625,7 +644,10 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-panel, .auth-hero::after, .auth-orbit, .primary-card, .secondary-card { animation: none; }
+  .hero-panel, .auth-hero::after, .auth-orbit, .primary-card, .secondary-card,
+  .shopsy-loader-orbit, .shopsy-loader-bag, .shopsy-loader-product-left,
+  .shopsy-loader-product-right, .shopsy-loader-subtitle, .shopsy-loader-progress span,
+  .shopsy-loader-quote { animation: none; }
 }
 
 /* Keep the refreshed auth layout independent from legacy auth overrides. */
