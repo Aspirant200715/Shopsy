@@ -5,6 +5,8 @@ import CartNavLink from "../components/CartNavLink";
 import { fetchProducts } from "../services/productApi";
 import formatPrice from "../utils/formatPrice";
 import StoreFooter from "../components/StoreFooter";
+import { changePassword } from "../services/customerApi";
+import { toast } from "react-toastify";
 
 const benefits = [
   { target: 24, suffix: "h", label: "fast dispatch" },
@@ -85,6 +87,13 @@ function HomePage() {
   const [products, setProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [productsError, setProductsError] = useState("");
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -118,6 +127,41 @@ function HomePage() {
     tag: `${products.filter((product) => product.category === category).length} products`,
   }));
   const featuredProducts = products.slice(0, 4);
+
+  const handlePasswordChange = async (event) => {
+    event.preventDefault();
+    setPasswordError("");
+
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordError("Your new password must be at least 6 characters.");
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError("New password and confirmation do not match.");
+      return;
+    }
+
+    setPasswordLoading(true);
+
+    try {
+      await changePassword(passwordForm);
+      setPasswordForm({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      toast.success("Password changed successfully.");
+    } catch (requestError) {
+      const message =
+        requestError.response?.data?.message ||
+        "Unable to change your password. Please try again.";
+      setPasswordError(message);
+      toast.error(message);
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
 
   return (
     <div className="home-shell">
@@ -160,6 +204,64 @@ function HomePage() {
               <strong>{customer?.fullname}</strong>
               <span>{customer?.email}</span>
             </div>
+
+            <form className="password-card" onSubmit={handlePasswordChange}>
+              <div>
+                <p className="password-card-eyebrow">Account security</p>
+                <h2>Change password</h2>
+              </div>
+              <label>
+                <span>Current password</span>
+                <input
+                  type="password"
+                  value={passwordForm.oldPassword}
+                  onChange={(event) =>
+                    setPasswordForm((current) => ({
+                      ...current,
+                      oldPassword: event.target.value,
+                    }))
+                  }
+                  autoComplete="current-password"
+                  required
+                />
+              </label>
+              <label>
+                <span>New password</span>
+                <input
+                  type="password"
+                  value={passwordForm.newPassword}
+                  onChange={(event) =>
+                    setPasswordForm((current) => ({
+                      ...current,
+                      newPassword: event.target.value,
+                    }))
+                  }
+                  autoComplete="new-password"
+                  minLength="6"
+                  required
+                />
+              </label>
+              <label>
+                <span>Confirm new password</span>
+                <input
+                  type="password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(event) =>
+                    setPasswordForm((current) => ({
+                      ...current,
+                      confirmPassword: event.target.value,
+                    }))
+                  }
+                  autoComplete="new-password"
+                  minLength="6"
+                  required
+                />
+              </label>
+              {passwordError && <p className="password-card-error">{passwordError}</p>}
+              <button className="ghost-btn small-btn" disabled={passwordLoading} type="submit">
+                {passwordLoading ? "Updating..." : "Update password"}
+              </button>
+            </form>
 
             <div className="cta-row">
               <Link to="/products" className="primary-btn">
