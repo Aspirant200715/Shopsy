@@ -385,7 +385,7 @@ npm run set-admin -- your-email@example.com
 2. Set `VITE_API_URL=https://your-api-domain.example.com`.
 3. Run `npm install` and `npm run build`.
 4. Serve `frontend/dist`.
-5. Configure SPA fallback so React Router routes serve `index.html`.
+5. Keep [`frontend/vercel.json`](./frontend/vercel.json) so Vercel rewrites client-side React Router routes to the application entry point when a page is refreshed or opened directly.
 6. Test login, logout, cart, Razorpay test payment, order history, and admin access.
 
 ### Current deployment values
