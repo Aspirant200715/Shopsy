@@ -6,13 +6,19 @@ import { addToCart, updateQuantity } from "../features/cart/cartSlice";
 import formatPrice from "../utils/formatPrice";
 import { toast } from "react-toastify";
 
-function ProductCard({ product, onRemove, removing = false }) {
+function ProductCard({
+  product,
+  onRemove,
+  removing = false,
+  isWishlisted = false,
+  onWishlistAdded,
+}) {
   const isOutOfStock = product.stock === 0;
   const isWishlistCard = typeof onRemove === "function";
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.cartItems);
   const [saving, setSaving] = useState(false);
-  const [added, setAdded] = useState(false);
+  const [added, setAdded] = useState(isWishlisted);
   const [error, setError] = useState("");
   const [imageFailed, setImageFailed] = useState(!product.image);
   const [updatingCart, setUpdatingCart] = useState(false);
@@ -30,6 +36,7 @@ function ProductCard({ product, onRemove, removing = false }) {
     try {
       await addToWishlist(product._id);
       setAdded(true);
+      onWishlistAdded?.(product._id);
       toast.success(`${product.name} added to your wishlist.`);
     } catch (requestError) {
       const message =
@@ -178,13 +185,15 @@ function ProductCard({ product, onRemove, removing = false }) {
         ) : (
           <button
             className="wishlist-action"
-            disabled={saving}
+            disabled={saving || added}
             onClick={handleWishlist}
             type="button"
           >
             {saving
               ? "Saving..."
-              : "Add to Wishlist"}
+              : added
+                ? "Already in Wishlist"
+                : "Add to Wishlist"}
           </button>
         )}
         {error && <p className="wishlist-error">{error}</p>}

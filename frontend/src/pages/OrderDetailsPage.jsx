@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import CartNavLink from "../components/CartNavLink";
 import formatPrice from "../utils/formatPrice";
-import { getOrderById } from "../services/orderApi";
+import {
+  createPaymentOrderForExistingOrder,
+  getOrderById,
+  verifyPayment,
+} from "../services/orderApi";
+import { toast } from "react-toastify";
 
 const orderSteps = ["PLACED", "CONFIRMED", "SHIPPED", "DELIVERED"];
 
@@ -33,6 +38,8 @@ function OrderDetailsPage() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -56,6 +63,60 @@ function OrderDetailsPage() {
 
     return () => controller.abort();
   }, [id]);
+
+  const completePayment = async () => {
+    setPaymentLoading(true);
+    setPaymentError("");
+
+    try {
+      if (!window.Razorpay) {
+        throw new Error("Payment checkout is unavailable. Please try again.");
+      }
+
+      const data = await createPaymentOrderForExistingOrder(id);
+      const razorpay = new window.Razorpay({
+        key: data.razorpay.keyId,
+        amount: data.razorpay.amount,
+        currency: data.razorpay.currency,
+        name: "ShopKart",
+        description: "Complete payment for your Shopsy order",
+        order_id: data.razorpay.orderId,
+        handler: async (response) => {
+          try {
+            await verifyPayment(response);
+            const refreshedOrder = await getOrderById(id);
+            setOrder(refreshedOrder.order);
+            toast.success("Payment completed successfully!");
+          } catch (requestError) {
+            const message =
+              requestError.response?.data?.message ||
+              requestError.message ||
+              "Payment verification failed. Please try again.";
+            setPaymentError(message);
+            toast.error(message);
+          }
+        },
+        prefill: {
+          name: order.shippingAddress.fullName,
+          contact: order.shippingAddress.phone,
+        },
+        theme: {
+          color: "#c7f36b",
+        },
+      });
+
+      razorpay.open();
+    } catch (requestError) {
+      const message =
+        requestError.response?.data?.message ||
+        requestError.message ||
+        "Unable to start payment.";
+      setPaymentError(message);
+      toast.error(message);
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
 
   return (
     <div className="home-shell catalog-shell">
@@ -110,6 +171,23 @@ function OrderDetailsPage() {
                   <div><span className="detail-label">Payment</span><strong>{order.paymentStatus}</strong></div>
                   <div><span className="detail-label">Order status</span><strong>{order.orderStatus}</strong></div>
                 </div>
+                {order.paymentStatus !== "PAID" && order.orderStatus === "PENDING_PAYMENT" && (
+                  <div className="pending-payment-panel">
+                    <div>
+                      <strong>Payment is still pending</strong>
+                      <span>Complete your payment to place this order.</span>
+                    </div>
+                    <button
+                      className="primary-btn small-btn"
+                      disabled={paymentLoading}
+                      onClick={completePayment}
+                      type="button"
+                    >
+                      {paymentLoading ? "Opening checkout..." : "Complete payment"}
+                    </button>
+                    {paymentError && <p className="wishlist-error">{paymentError}</p>}
+                  </div>
+                )}
                 <div className="order-progress">
                   <h3>Order status</h3>
                   <div className="order-progress-steps">

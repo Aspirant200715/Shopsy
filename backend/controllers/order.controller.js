@@ -17,6 +17,19 @@ const getRazorpay = () => {
   return razorpay;
 };
 
+const createRazorpayOrder = async (order) => {
+  const razorpayOrder = await getRazorpay().orders.create({
+    amount: Math.round(order.totalAmount * 100),
+    currency: "INR",
+    receipt: order._id.toString(),
+  });
+
+  order.razorpayOrderId = razorpayOrder.id;
+  await order.save();
+
+  return razorpayOrder;
+};
+
 export const createPaymentOrder = async (req, res) => {
   try {
     const { shippingAddress } = req.body;
@@ -102,16 +115,7 @@ export const createPaymentOrder = async (req, res) => {
       orderStatus: "PENDING_PAYMENT",
     });
 
-    const rzp = getRazorpay();
-    const razorpayOrder = await rzp.orders.create({
-      amount: Math.round(totalAmount * 100),
-      currency: "INR",
-      receipt: order._id.toString(),
-    });
-
-    order.razorpayOrderId = razorpayOrder.id;
-
-    await order.save();
+    const razorpayOrder = await createRazorpayOrder(order);
     return res.status(201).json({
       success: true,
       message: "Order created successfully",
@@ -134,6 +138,50 @@ export const createPaymentOrder = async (req, res) => {
 
     return res.status(500).json({
       message: "Failed to create order",
+      error: error.message,
+    });
+  }
+};
+
+export const createPaymentOrderForExistingOrder = async (req, res) => {
+  try {
+    const order = await Order.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.paymentStatus === "PAID" || order.orderStatus !== "PENDING_PAYMENT") {
+      return res.status(409).json({
+        message: "This order is no longer awaiting payment.",
+      });
+    }
+
+    const razorpayOrder = await createRazorpayOrder(order);
+
+    return res.status(200).json({
+      success: true,
+      order: {
+        id: order._id,
+        totalAmount: order.totalAmount,
+        paymentStatus: order.paymentStatus,
+        orderStatus: order.orderStatus,
+      },
+      razorpay: {
+        orderId: razorpayOrder.id,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        keyId: process.env.RAZORPAY_KEY_ID,
+      },
+    });
+  } catch (error) {
+    console.error("Create pending payment order error:", error);
+
+    return res.status(500).json({
+      message: "Failed to start payment",
       error: error.message,
     });
   }

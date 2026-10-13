@@ -319,6 +319,10 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .order-detail-card { padding: 22px; border: 1.5px solid var(--ink); border-radius: 9px; background: var(--card); box-shadow: 5px 5px 0 rgba(24,33,29,.18); }
 .order-detail-status { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .order-detail-status div { display: grid; gap: 4px; padding: 13px; border: 1px solid var(--line); border-radius: 7px; }
+.pending-payment-panel { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin-top: 16px; padding: 14px; border: 1.5px solid var(--coral); border-radius: 8px; background: rgba(242,120,92,.1); }
+.pending-payment-panel div { display: grid; gap: 4px; }
+.pending-payment-panel div span { color: var(--muted); font-size: .78rem; }
+.pending-payment-panel .wishlist-error { flex-basis: 100%; margin: 0; }
 .detail-label { color: var(--muted); font-size: .7rem; font-weight: 800; }
 .order-detail-card h2 { margin: 24px 0 14px; font-size: 1.4rem; letter-spacing: -.05em; }
 .order-detail-items { display: grid; gap: 10px; }

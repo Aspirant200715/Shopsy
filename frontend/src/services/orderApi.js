@@ -17,6 +17,14 @@ export const verifyPayment = async (paymentResponse) => {
   return response.data;
 };
 
+export const createPaymentOrderForExistingOrder = async (orderId) => {
+  const response = await axiosInstance.post(
+    `/orders/${orderId}/create-payment-order`,
+  );
+
+  return response.data;
+};
+
 export const getOrders = async (signal) => {
   const response = await axiosInstance.get("/orders", { signal });
   return response.data;

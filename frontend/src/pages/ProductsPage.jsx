@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import useAuth from "../context/useAuth";
 import ProductCard from "../components/ProductCard";
-import { fetchProducts } from "../services/productApi";
+import { fetchProducts, fetchWishlist } from "../services/productApi";
 import CartNavLink from "../components/CartNavLink";
 import StoreFooter from "../components/StoreFooter";
 
@@ -46,6 +46,7 @@ function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [wishlistIds, setWishlistIds] = useState([]);
   const categories = category
     ? [...new Set([...defaultCategories, category])]
     : defaultCategories;
@@ -77,6 +78,27 @@ function ProductsPage() {
 
     return () => controller.abort();
   }, [search, category, sort]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetchWishlist(controller.signal)
+      .then((data) =>
+        setWishlistIds(
+          (data.wishlist || []).map((product) => product._id),
+        ),
+      )
+      .catch((requestError) => {
+        if (
+          requestError.name !== "CanceledError" &&
+          requestError.code !== "ERR_CANCELED"
+        ) {
+          setWishlistIds([]);
+        }
+      });
+
+    return () => controller.abort();
+  }, []);
 
   return (
     <div className="home-shell catalog-shell">
@@ -166,7 +188,18 @@ function ProductsPage() {
         {!loading && !error && products.length > 0 && (
           <section className="catalog-grid">
             {products.map((product) => (
-              <ProductCard key={product._id} product={product} />
+              <ProductCard
+                key={product._id}
+                isWishlisted={wishlistIds.includes(product._id)}
+                onWishlistAdded={(productId) =>
+                  setWishlistIds((currentIds) =>
+                    currentIds.includes(productId)
+                      ? currentIds
+                      : [...currentIds, productId],
+                  )
+                }
+                product={product}
+              />
             ))}
           </section>
         )}
