@@ -4,7 +4,17 @@ Shopsy is a full-stack MERN e-commerce application for curated home, lifestyle, 
 
 ![Shopsy frontend login preview](./docs/screenshots/login.png)
 
-> **Project status:** ready for local development and deployment preparation. Replace example support contact details and configure production environment variables before publishing.
+> **Project status:** deployed and available for staging/testing. Configure your own production business details, live Razorpay credentials, and custom domain before accepting real orders.
+
+## Live deployment
+
+| Service | URL | Purpose |
+|---|---|---|
+| Shopsy storefront | [shopsy-eight-alpha.vercel.app](https://shopsy-eight-alpha.vercel.app) | Vercel-hosted React/Vite frontend |
+| Shopsy API | [shopkart-api-wyjo.onrender.com](https://shopkart-api-wyjo.onrender.com) | Render-hosted Express API |
+| API health | [shopkart-api-wyjo.onrender.com/health](https://shopkart-api-wyjo.onrender.com/health) | Public API and MongoDB connectivity check |
+
+The production frontend uses the API URL through `VITE_API_URL`. The backend uses `CORS_ORIGINS` to allow credentialed browser requests from the deployed frontend. The Render free service may sleep after inactivity, so the first request after a quiet period can take longer.
 
 ## Contents
 
@@ -20,6 +30,7 @@ Shopsy is a full-stack MERN e-commerce application for curated home, lifestyle, 
 - [Environment variables](#environment-variables)
 - [Seed products and promote an admin](#seed-products-and-promote-an-admin)
 - [Deployment](#deployment)
+- [Production configuration](#production-configuration)
 - [Validation commands](#validation-commands)
 - [Troubleshooting](#troubleshooting)
 - [License and third-party notices](#license-and-third-party-notices)
@@ -377,6 +388,59 @@ npm run set-admin -- your-email@example.com
 5. Configure SPA fallback so React Router routes serve `index.html`.
 6. Test login, logout, cart, Razorpay test payment, order history, and admin access.
 
+### Current deployment values
+
+The current deployment uses the following configuration:
+
+```text
+Frontend host: Vercel
+Frontend root directory: frontend
+Frontend build command: npm run build
+Frontend output directory: dist
+
+Backend host: Render
+Backend root directory: backend
+Backend build command: npm install
+Backend start command: npm start
+Backend region: Singapore
+```
+
+For a new deployment, deploy the backend first, verify `/health`, then set the frontend `VITE_API_URL` to the backend URL. After the frontend has a stable URL, set the backend `CORS_ORIGINS` to that exact origin without a trailing slash and redeploy the backend.
+
+## Production configuration
+
+### Render backend variables
+
+Set these variables on the backend service. Keep all secret values in the hosting provider's secret manager; never commit them to Git.
+
+```env
+NODE_ENV=production
+PORT=10000
+dbUrl=mongodb+srv://<username>:<password>@<cluster>/<database>
+JWT_SECRET=<long-random-secret>
+RAZORPAY_KEY_ID=<razorpay-key-id>
+RAZORPAY_KEY_SECRET=<razorpay-key-secret>
+CORS_ORIGINS=https://shopsy-eight-alpha.vercel.app
+```
+
+`PORT` is normally supplied by Render. The backend defaults to `5050` for local development. `dbUrl` is intentionally lowercase because that is the environment variable read by the server and maintenance scripts. The JWT utility accepts either `jwt_secret` or `JWT_SECRET`; use `JWT_SECRET` consistently in production.
+
+### Vercel frontend variable
+
+```env
+VITE_API_URL=https://shopkart-api-wyjo.onrender.com
+```
+
+Vite embeds `VITE_*` values into the browser bundle at build time. Redeploy the frontend after changing this variable.
+
+### MongoDB Atlas
+
+The backend requires a MongoDB Atlas database user with read/write access. Atlas Network Access must allow the Render service to connect. For initial Render testing, `0.0.0.0/0` is commonly used because Render outbound addresses can change; review this exposure and your database permissions before a high-security production launch.
+
+### Payment rollout
+
+Use Razorpay test keys while validating signup, cart, checkout, signature verification, stock handling, and order history. Switch to live keys only after completing Razorpay account verification and replacing all test credentials in Render. Never expose `RAZORPAY_KEY_SECRET` or any database/JWT secret in frontend variables.
+
 ### Production security checklist
 
 - Never commit `.env`, credentials, or payment secrets.
@@ -387,6 +451,9 @@ npm run set-admin -- your-email@example.com
 - Review privacy, terms, shipping, and returns copy for the real business.
 - Replace third-party image hotlinks with owned or licensed assets where possible.
 - Back up MongoDB before production migrations or seed operations.
+- Confirm `CORS_ORIGINS` exactly matches the frontend origin and uses HTTPS.
+- Confirm the deployed `/health` endpoint reports `"database": "connected"`.
+- Configure a custom domain and update CORS after the domain is active.
 
 ## Validation commands
 
