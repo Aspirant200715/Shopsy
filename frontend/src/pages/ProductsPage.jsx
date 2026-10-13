@@ -29,9 +29,9 @@ function StoreHeader() {
         <Link to="/logout">Logout</Link>
       </nav>
       <div className="nav-actions">
-        <span className="user-greeting">
-          Hi, {customer?.fullname?.split(" ")[0]}
-        </span>
+        <Link className="profile-nav-link" to="/profile" title="Open your profile">
+          {customer?.fullname || "Profile"}
+        </Link>
       </div>
     </header>
   );

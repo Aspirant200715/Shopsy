@@ -19,6 +19,7 @@ import "react-toastify/dist/ReactToastify.css";
 import AdminRoute from "./components/adminRoute";
 import AdminPage from "./pages/AdminPage";
 import InformationPage from "./pages/InformationPage";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   return (
@@ -60,6 +61,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <LogoutPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
                 </ProtectedRoute>
               }
             />

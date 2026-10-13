@@ -100,7 +100,11 @@ function AdminPage() {
       <header className="topbar">
         <Link to="/" className="brand brand-dark"><span className="brand-mark">S</span>Shopsy</Link>
         <nav className="nav-links"><Link to="/">Storefront</Link><Link className="active-nav" to="/admin">Admin studio</Link><Link to="/logout">Logout</Link></nav>
-        <span className="user-greeting">{customer?.fullname}</span>
+        <div className="nav-actions">
+          <Link className="profile-nav-link" to="/profile" title="Open your profile">
+            {customer?.fullname || "Profile"}
+          </Link>
+        </div>
       </header>
       <main className="admin-page">
         <section className="admin-heading">
